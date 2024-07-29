@@ -6,17 +6,17 @@ RUN go mod download
 FROM base AS api-builder
 WORKDIR /app
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-http-service ./cmd/message-http-service/
+RUN --mount=type=cache,target="/root/.cache/go-build" CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-http-service ./cmd/message-http-service/
 
 FROM base AS consumer-builder
 WORKDIR /app
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-consumer-service ./cmd/message-consumer-service/
+RUN --mount=type=cache,target="/root/.cache/go-build" CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-consumer-service ./cmd/message-consumer-service/
 
 FROM base AS processor-builder
 WORKDIR /app
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-processor ./cmd/message-processor/
+RUN --mount=type=cache,target="/root/.cache/go-build" CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o dist/message-processor ./cmd/message-processor/
 
 FROM alpine:latest AS consumer-production
 WORKDIR /app
