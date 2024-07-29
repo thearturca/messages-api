@@ -33,3 +33,10 @@ FROM alpine:latest AS processor-production
 WORKDIR /app
 COPY --from=processor-builder /app/dist/message-processor .
 CMD ["./message-processor"]
+
+FROM gomicro/goose AS migrator
+WORKDIR /migrations
+COPY ./db/migrations/*.sql ./
+COPY entrypoint_migrator.sh ./entrypoint.sh
+
+CMD ["sh", "./entrypoint.sh"]
