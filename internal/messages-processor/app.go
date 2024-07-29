@@ -21,6 +21,7 @@ type App struct {
 
 func NewApp(config *Config) *App {
 	return &App{
+		config:  config,
 		service: NewService(config.Kafka.Writer),
 	}
 }
@@ -28,14 +29,16 @@ func NewApp(config *Config) *App {
 func (app *App) Run() error {
 	reader := app.config.Kafka.Reader
 
+	ctx := context.Background()
 	for {
-		m, err := reader.ReadMessage(context.Background())
+		m, err := reader.ReadMessage(ctx)
 
 		if err != nil {
+			log.Println("error reading message: ", err)
 			break
 		}
 
-		go app.service.Handle(context.Background(), m)
+		go app.service.Handle(ctx, m)
 
 		log.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
 	}

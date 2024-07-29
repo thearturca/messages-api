@@ -25,6 +25,7 @@ func (s *Service) Handle(ctx context.Context, message kafka.Message) error {
 	json.Unmarshal(message.Value, &dto)
 
 	if dto.IsProcessed {
+		log.Println("message already processed: ", dto.Id)
 		return nil
 	}
 
@@ -47,6 +48,7 @@ func (s *Service) ProcessMessage(ctx context.Context, message db.Message) *db.Me
 	log.Println("process message: ", message.Id)
 	log.Println("message text: ", message.Text)
 
+	// simulate heavy processing
 	time.Sleep(20 * time.Second)
 
 	log.Println("message processed: ", message.Id)
