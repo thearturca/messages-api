@@ -6,6 +6,7 @@ import (
 	"message-service/internal/messages"
 	"os"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/segmentio/kafka-go"
 	"gopkg.in/yaml.v3"
 )
@@ -18,6 +19,11 @@ type Config struct {
 
 	Server struct {
 		PORT string `yaml:"port" envconfig:"PORT"`
+		HOST string `yaml:"host" envconfig:"HOST"`
+		Auth struct {
+			Username string `yaml:"username" envconfig:"BASIC_AUTH_USERNAME"`
+			Password string `yaml:"password" envconfig:"BASIC_AUTH_PASSWORD"`
+		} `yaml:"auth"`
 	} `yaml:"server"`
 
 	DB struct {
@@ -29,15 +35,27 @@ type Config struct {
 	} `yaml:"db"`
 }
 
-func main() {
-	log.Println("parsing config...")
+var config Config
+
+func init() {
+	log.Println("parsing configs...")
+
+	log.Println("loading environment variables...")
+
+	err := envconfig.Process("", &config)
+
+	if err != nil {
+		log.Fatalf("failed to load environment variables: %v", err)
+	}
+
+	log.Println("loading config file...")
+
 	file, err := os.OpenFile("config.yml", os.O_RDONLY, 0)
 
 	if err != nil {
 		log.Fatalf("failed to open config file: %v", err)
 	}
 
-	var config Config
 	decoder := yaml.NewDecoder(file)
 
 	err = decoder.Decode(&config)
@@ -53,6 +71,9 @@ func main() {
 	}
 
 	log.Println("config parsed")
+}
+
+func main() {
 	log.Println("connecting to db...")
 
 	db, err := db.New(&db.Config{
@@ -81,7 +102,12 @@ func main() {
 	defer kafkaWriter.Close()
 
 	app := messages.NewApp(&messages.Config{
-		Port:  config.Server.PORT,
+		Port: config.Server.PORT,
+		Host: config.Server.HOST,
+		Auth: messages.Auth{
+			Username: config.Server.Auth.Username,
+			Password: config.Server.Auth.Password,
+		},
 		DB:    db,
 		Kafka: kafkaWriter,
 	})

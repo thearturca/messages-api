@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"log"
-	"message-service/internal/db"
+	messagesProcessor "message-service/internal/messages-processor"
 	"os"
-	"time"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/segmentio/kafka-go"
 	"gopkg.in/yaml.v3"
 )
@@ -19,15 +17,27 @@ type Config struct {
 	} `yaml:"kafka"`
 }
 
-func main() {
-	log.Println("parsing config...")
+var config Config
+
+func init() {
+	log.Println("parsing configs...")
+
+	log.Println("loading environment variables...")
+
+	err := envconfig.Process("", &config)
+
+	if err != nil {
+		log.Fatalf("failed to load environment variables: %v", err)
+	}
+
+	log.Println("loading config file...")
+
 	file, err := os.OpenFile("config.yml", os.O_RDONLY, 0)
 
 	if err != nil {
 		log.Fatalf("failed to open config file: %v", err)
 	}
 
-	var config Config
 	decoder := yaml.NewDecoder(file)
 
 	err = decoder.Decode(&config)
@@ -43,44 +53,33 @@ func main() {
 	}
 
 	log.Println("config parsed")
+}
 
+func main() {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: config.Kafka.Brokers,
 		Topic:   config.Kafka.Topic,
+		GroupID: "message-processor-service",
 	})
 
-	writer := kafka.Writer{
+	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(config.Kafka.Brokers...),
 		Topic:                  config.Kafka.Topic,
 		Balancer:               &kafka.LeastBytes{},
 		AllowAutoTopicCreation: true,
 	}
 
-	for {
-		msg, err := reader.ReadMessage(context.Background())
+	app := messagesProcessor.NewApp(&messagesProcessor.Config{
+		Kafka: struct {
+			Reader *kafka.Reader
+			Writer *kafka.Writer
+		}{
+			Reader: reader,
+			Writer: writer,
+		},
+	})
 
-		if err != nil {
-			break
-		}
-
-		log.Println(msg)
-
-		var dtoMessage *db.Message
-
-		err = json.Unmarshal(msg.Value, &dtoMessage)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Println(dtoMessage)
-		time.Sleep(5 * time.Second)
-		writer.WriteMessages(context.Background(), kafka.Message{Key: []byte(dtoMessage.Id), Value: dtoMessage})
-
+	if err := app.Run(); err != nil {
+		log.Fatalf("failed to run app: %v", err)
 	}
-
-	if err := reader.Close(); err != nil {
-		log.Fatal(err)
-	}
-
 }

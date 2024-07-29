@@ -6,6 +6,7 @@ import (
 	"message-service/internal/db"
 	"os"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/segmentio/kafka-go"
 	"gopkg.in/yaml.v3"
 )
@@ -25,15 +26,27 @@ type Config struct {
 	} `yaml:"db"`
 }
 
-func main() {
-	log.Println("parsing config...")
+var config Config
+
+func init() {
+	log.Println("parsing configs...")
+
+	log.Println("loading environment variables...")
+
+	err := envconfig.Process("", &config)
+
+	if err != nil {
+		log.Fatalf("failed to load environment variables: %v", err)
+	}
+
+	log.Println("loading config file...")
+
 	file, err := os.OpenFile("config.yml", os.O_RDONLY, 0)
 
 	if err != nil {
 		log.Fatalf("failed to open config file: %v", err)
 	}
 
-	var config Config
 	decoder := yaml.NewDecoder(file)
 
 	err = decoder.Decode(&config)
@@ -49,6 +62,9 @@ func main() {
 	}
 
 	log.Println("config parsed")
+}
+
+func main() {
 	log.Println("connecting to db...")
 
 	db, err := db.New(&db.Config{
@@ -68,6 +84,7 @@ func main() {
 	kafka := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: config.Kafka.Brokers,
 		Topic:   config.Kafka.Topic,
+		GroupID: "message-consumer-service",
 	})
 
 	app := consumer.NewApp(&consumer.Config{
