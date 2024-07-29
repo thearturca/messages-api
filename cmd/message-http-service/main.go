@@ -53,7 +53,8 @@ func init() {
 	file, err := os.OpenFile("config.yml", os.O_RDONLY, 0)
 
 	if err != nil {
-		log.Fatalf("failed to open config file: %v", err)
+		log.Printf("failed to open config file: %v\n", err)
+		return
 	}
 
 	decoder := yaml.NewDecoder(file)
