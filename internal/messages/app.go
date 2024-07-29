@@ -77,6 +77,11 @@ func (app *App) Run() error {
 
 	mux.Handle("GET /stats", http.HandlerFunc(statisticsHandler.GetStatistics))
 
+	mux.Handle("GET /health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}))
+
 	authenticatedMux := BasicAuth(mux, app.config.Auth.Username, app.config.Auth.Password)
 
 	return http.ListenAndServe(fmt.Sprintf("%s:%s", app.config.Host, app.config.Port), authenticatedMux)

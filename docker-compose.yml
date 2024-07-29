@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  processor:
+    build:
+      context: .
+      target: processor-production
+    container_name: processor
+    restart: "unless-stopped"
+    env_file:
+      - .env
+
+  consumer:
+    build:
+      context: .
+      target: consumer-production
+    container_name: consumer
+    restart: "unless-stopped"
+    env_file:
+      - .env
+
+  api:
+    build:
+      context: .
+      target: api-production
+    container_name: api
+    restart: "unless-stopped"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://api:${PORT}/health || exit 1
+      interval: 30s
+      retries: 5
+      timeout: 10s
+    ports:
+      - 127.0.0.1:${PORT}:${PORT}
+    env_file:
+      - .env
