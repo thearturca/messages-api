@@ -7,12 +7,6 @@ services:
       target: migrator
     container_name: migrator
     restart: "no"
-    environment:
-      DBHOST: ${PG_HOST}
-      DBUSER: ${PG_USER}
-      DBPASSWORD: ${PG_PASSWORD}
-      DBNAME: ${PG_DATABASE}
-      DBPORT: ${PG_PORT}
     env_file:
       - .env
     
