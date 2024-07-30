@@ -29,6 +29,6 @@ CMD ["./message-processor"]
 FROM gomicro/goose AS migrator
 WORKDIR /migrations
 COPY ./db/migrations/*.sql ./
-COPY entrypoint_migrator.sh ./entrypoint.sh
+COPY ./scripts/entrypoint_migrator.sh ./entrypoint.sh
 
 CMD ["sh", "./entrypoint.sh"]
