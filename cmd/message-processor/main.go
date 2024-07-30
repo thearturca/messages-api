@@ -4,6 +4,7 @@ import (
 	"log"
 	messagesProcessor "message-service/internal/messages-processor"
 	"os"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/segmentio/kafka-go"
@@ -68,6 +69,8 @@ func main() {
 		Topic:                  config.Kafka.Topic,
 		Balancer:               &kafka.LeastBytes{},
 		AllowAutoTopicCreation: true,
+		RequiredAcks:           kafka.RequireNone,
+		WriteBackoffMin:        10 * time.Millisecond,
 	}
 
 	app := messagesProcessor.NewApp(&messagesProcessor.Config{

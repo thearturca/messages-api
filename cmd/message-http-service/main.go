@@ -5,6 +5,7 @@ import (
 	"message-service/internal/db"
 	"message-service/internal/messages"
 	"os"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/segmentio/kafka-go"
@@ -98,6 +99,8 @@ func main() {
 		Addr:                   kafka.TCP(config.Kafka.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
 		AllowAutoTopicCreation: true,
+		RequiredAcks:           kafka.RequireNone,
+		WriteBackoffMin:        10 * time.Millisecond,
 	}
 
 	defer kafkaWriter.Close()
