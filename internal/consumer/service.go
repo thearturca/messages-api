@@ -45,11 +45,7 @@ func (s *Service) ProcessMessage(ctx context.Context, message db.Message) (*db.M
 		message.ProcessedAt = &now
 	}
 
-	updatedMessage, err := s.messagesService.UpdateMessage(ctx, &db.Message{
-		Id:          message.Id,
-		IsProcessed: true,
-		ProcessedAt: message.ProcessedAt,
-	})
+	updatedMessage, err := s.messagesService.UpdateMessage(ctx, &message)
 
 	if err != nil {
 		return nil, err
