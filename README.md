@@ -36,7 +36,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 
 - `GET /messages/{id}` - получить сообщение по его id. Пример:
 ```shell
-curl -X GET http://localhost:3000/messages/fbc4136e-d7e9-4e9f-9b09-c7008a24244b
+curl -X -u admin:password GET http://localhost:3000/messages/fbc4136e-d7e9-4e9f-9b09-c7008a24244b
 ```
 Пример ответа:
 ```json
@@ -52,15 +52,15 @@ curl -X GET http://localhost:3000/messages/fbc4136e-d7e9-4e9f-9b09-c7008a24244b
 
 - `GET /stats` - получить статистику по сообщениям. Эндпоинт поддерживает фильтрацию по дате. Для фильтрации нужно указать `from` и `to` параметры. `from` и `to` являются необязательными параметрами. Пример:
 ```shell
-curl -X GET http://localhost:3000/stats?from=2024-07-30T00:00:00Z&to=2024-07-30T10:39:43Z
+curl -X -u admin:password GET http://localhost:3000/stats?from=2024-07-30T00:00:00Z&to=2024-07-30T10:39:43Z
 ```
 
 ```shell
-curl -X GET http://localhost:3000/stats?from=2024-07-30T00:00:00Z
+curl -X -u admin:password GET http://localhost:3000/stats?from=2024-07-30T00:00:00Z
 ```
 
 ```shell
-curl -X GET http://localhost:3000/stats?to=2024-07-30T10:39:43Z
+curl -X -u admin:password GET http://localhost:3000/stats?to=2024-07-30T10:39:43Z
 ```
 
 Пример ответа:
